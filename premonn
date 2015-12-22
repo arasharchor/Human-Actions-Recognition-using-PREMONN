@@ -1,0 +1,55 @@
+#######################################################################################################################
+#####  Code for the Predictive Modular Neural Network (PREMONN) section of the human action recognition algorithm  ####
+#######################################################################################################################
+
+
+for iter=1:2
+if iter==1
+    Hist=[];
+    C=Centers;
+else
+    C=totalhogvec(find(IDX==Hist),:);
+end
+
+
+[r2,c2]=size(C);
+Models=r2;
+
+[r1 c1]=size(totalhogtest);
+Credits=ones(Models,1)*1/Models;
+for i=1:r1
+    Output=[];
+    test  = totalhogtest(i,:);               % matrix of testing vector.
+    globalA=[];
+%    for j=1:Models
+        for k=1:r2
+        Output=[Output;norm(totalhogtest(i,:)-(C(k,:)))];
+        end
+ %   end
+    sigma=1;
+    A=Credits(:,i) .* exp(-(Output)./(2*sigma ^ 2));
+%     A=Credits(:,i) .* Output;
+    if sum(A)==0
+        Credits(:,i+1)=1/Models;
+    else
+        thres_up=0.7;
+        thres_down=0.01;
+        for tt=1:Models
+            if A(tt) >thres_up
+%                 A=A+(A(tt)-thres)/29;
+                A(tt)=thres_up;
+            elseif A(tt) <thres_down
+                A(tt)=thres_down;
+%                 break;              
+            end
+        end
+        Credits=[Credits A./sum(A)];
+    end
+    Hist=[Hist min(find(Credits(:,i)==max(Credits(:,i))))];
+end
+Hist
+end
+
+
+#Refer to the paper below for details:
+#Petridis, Vassilios, Briti Deb, and Vassilis Syrris. "Detection and identification of human actions using predictive modular neural networks." Control and Automation, 2009. MED'09. 17th Mediterranean Conference on Control and Automation. IEEE, 2009.
